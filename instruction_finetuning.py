@@ -348,19 +348,43 @@ from llms_from_scratch.ch05 import (
     calc_loss_loader,
     train_model_simple,
 )
+from torch.utils.data import DataLoader
 
-model.to(device)
+train_dataset = InstructionDataset(
+    train_data,
+    tokenizer,
+    max_length=256
+)
+
+val_dataset = InstructionDataset(
+    val_data,
+    tokenizer,
+    max_length=256
+)
+
+train_loader = DataLoader(
+    train_dataset,
+    batch_size=8,
+    shuffle=True,
+    drop_last=True
+)
+
+val_loader = DataLoader(
+    val_dataset,
+    batch_size=8,
+    shuffle=False,
+    drop_last=False
+)
 
 torch.manual_seed(123)
 
 with torch.no_grad():
-    train_loss = calc_loss_loader(train_loader, model, device, num_batches=5)
-    val_loss = calc_loss_loader(val_loader, model, device, num_batches=5)
+    train_loss = calc_loss_loader(train_loader, model, num_batches=5)
+    val_loss = calc_loss_loader(val_loader, model, num_batches=5)
 
 print("Training loss:", train_loss)
 print("Validation loss:", val_loss)
-
-
+model.train()
 import time
 
 start_time = time.time()
@@ -372,7 +396,7 @@ optimizer = torch.optim.AdamW(model.parameters(), lr=0.00005, weight_decay=0.1)
 num_epochs = 2
 
 train_losses, val_losses, tokens_seen = train_model_simple(
-    model, train_loader, val_loader, optimizer, device,
+    model, train_loader, val_loader, optimizer,
     num_epochs=num_epochs, eval_freq=5, eval_iter=5,
 )
 
@@ -381,9 +405,9 @@ execution_time_minutes = (end_time - start_time) / 60
 print(f"Training completed in {execution_time_minutes:.2f} minutes.")
 
 import re
+
 CHOOSE_MODEL = "tiny-LLM"
 
-file_name = f"{re.sub(r'[ ()]', '', CHOOSE_MODEL) }-sft.pth"
+file_name = f"{re.sub(r'[ ()]', '', CHOOSE_MODEL)}-sft.pth"
 torch.save(model.state_dict(), file_name)
 print(f"Model saved as {file_name}")
-

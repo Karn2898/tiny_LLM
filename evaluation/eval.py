@@ -38,18 +38,9 @@ def query_model(
     }
 
 
+        print(">>", query_model(prompt))
+        print("\n-------------------------")
+
     response = requests.post(url, json=data)
-
-    # Check for errors
-    if response.status_code != 200:
-        print(f"Error: {response.status_code}")
-        print(response.text)
-        response.raise_for_status()
-
-    return response.json()['message']['content']
-
-model = "tinyllama"
-result = query_model("What do Llamas eat?", model)
-print(result)
 
 

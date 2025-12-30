@@ -1,9 +1,65 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import streamlit as st
-from langchain.chains import RetrievalQA
-from langchain.vectorstores import FAISS
-from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.text_splitter import CharacterTextSplitter
-from model_wrapper import MyCustomLLM  # <--- Import your wrapper
+from langchain_community.vectorstores import FAISS
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_text_splitters import CharacterTextSplitter
+from langchain_wrapper import MyCustomLLM
+
+
+
+
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_openai import ChatOpenAI
+from langchain_community.vectorstores import FAISS
+from langchain_openai import ChatOpenAI
+
+
+
+llm = ChatOpenAI(
+     api_key="sk-abcdqrstefgh5678abcdqrstefgh5678abcdqrst"
+)
+from langchain_community.vectorstores import FAISS
+from langchain_openai import OpenAIEmbeddings
+from langchain_core.documents import Document
+embeddings = OpenAIEmbeddings(
+    model="text-embedding-3-small"
+)
+
+docs = [
+    Document(page_content="Transformers use self-attention to model relationships."),
+    Document(page_content="RAG combines retrieval with generation for grounded answers."),
+    Document(page_content="FAISS is a vector database for similarity search.")
+]
+
+
+embeddings = OpenAIEmbeddings()
+
+
+vectorstore = FAISS.from_documents(docs, embeddings)
+retriever = vectorstore.as_retriever()
+
+prompt = ChatPromptTemplate.from_template("""
+Answer the question using only the context below.
+
+Context:
+{context}
+
+Question:
+{question}
+""")
+
+rag_chain = (
+    {"context": retriever, "question": lambda x: x}
+    | prompt
+    | llm
+    | StrOutputParser()
+)
+
+response = rag_chain.invoke("What is attention mechanism?")
+print(response)
 
 
 # 1.   INTERFACE SETUP
@@ -32,7 +88,7 @@ st.sidebar.header(" Knowledge Base")
 uploaded_file = st.sidebar.file_uploader("Upload Notes (.txt)", type="txt")
 
 if uploaded_file:
-    #  Read the file
+
     raw_text = uploaded_file.read().decode("utf-8")
 
     #  Chunk

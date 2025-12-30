@@ -1,28 +1,20 @@
-from pathlib import Path
-import sys
-
-import tiktoken
+import chainlit as cl
 import torch
-import chainlit
-import llms_from_scratch
-
-# For llms_from_scratch installation instructions, see:
-# https://github.com/rasbt/LLMs-from-scratch/tree/main/pkg
+import tiktoken
+from pathlib import Path
 from llms_from_scratch.ch04 import GPTModel
+from llms_from_scratch.ch05 import generate, text_to_token_ids, token_ids_to_text
+import sys
 from llms_from_scratch.ch05 import (
     generate,
     text_to_token_ids,
     token_ids_to_text,
 )
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device( "cpu")
 
 
 def get_model_and_tokenizer():
-    """
-    Code to load a GPT-2 model with finetuned weights generated in chapter 7.
-    This requires that you run the code in chapter 7 first, which generates the necessary gpt2-medium355M-sft.pth file.
-    """
 
     GPT_CONFIG_355M = {
         "vocab_size": 50257,     # Vocabulary size
@@ -36,15 +28,16 @@ def get_model_and_tokenizer():
 
     tokenizer = tiktoken.get_encoding("gpt2")
 
-    model_path = Path("..") / "01_main-chapter-code" / "gpt2-medium355M-sft.pth"
+    model_path = Path(r"C:\Users\DELL\PycharmProjects\PythonProject4\model\gpt2-medium355M-sft.pth")
     if not model_path.exists():
         print(
-            f"Could not find the {model_path} file. Please run the chapter 7 code "
-            " (ch07.ipynb) to generate the gpt2-medium355M-sft.pt file."
+            f"Could not find the {model_path} file. "
         )
         sys.exit()
 
-    checkpoint = torch.load(model_path, weights_only=True)
+    checkpoint = torch.load(model_path,
+                            map_location=torch.device("cpu"),
+                            weights_only=True)
     model = GPTModel(GPT_CONFIG_355M)
     model.load_state_dict(checkpoint)
     model.to(device)
@@ -60,11 +53,8 @@ def extract_response(response_text, input_text):
 tokenizer, model, model_config = get_model_and_tokenizer()
 
 
-@chainlit.on_message
-async def main(message: chainlit.Message):
-    """
-    The main Chainlit function.
-    """
+@cl.on_message
+async def main(message: cl.Message):
 
     torch.manual_seed(123)
 
@@ -74,7 +64,7 @@ async def main(message: chainlit.Message):
     ### Instruction:
     {message.content}
     """
-
+    tokenizer, model, model_config = get_model_and_tokenizer()
     token_ids = generate(  # function uses `with torch.no_grad()` internally already
         model=model,
         idx=text_to_token_ids(prompt, tokenizer).to(device),  # The user text is provided via as `message.content`
@@ -86,6 +76,6 @@ async def main(message: chainlit.Message):
     text = token_ids_to_text(token_ids, tokenizer)
     response = extract_response(text, prompt)
 
-    await chainlit.Message(
-        content=f"{response}",  # This returns the model response to the interface
+    await cl.Message(
+        content=f"{response}",
     ).send()

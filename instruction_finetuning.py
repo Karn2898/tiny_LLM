@@ -353,13 +353,13 @@ from torch.utils.data import DataLoader
 train_dataset = InstructionDataset(
     train_data,
     tokenizer,
-    max_length=256
+
 )
 
 val_dataset = InstructionDataset(
     val_data,
     tokenizer,
-    max_length=256
+
 )
 
 train_loader = DataLoader(
@@ -377,10 +377,12 @@ val_loader = DataLoader(
 )
 
 torch.manual_seed(123)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model.to(device)
 
 with torch.no_grad():
-    train_loss = calc_loss_loader(train_loader, model, num_batches=5)
-    val_loss = calc_loss_loader(val_loader, model, num_batches=5)
+    train_loss = calc_loss_loader(train_loader, model,device, num_batches=5)
+    val_loss = calc_loss_loader(val_loader, model, device,num_batches=5)
 
 print("Training loss:", train_loss)
 print("Validation loss:", val_loss)

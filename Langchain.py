@@ -18,7 +18,7 @@ class MyCustomLLM(LLM):
     def __init__(self, weight_path, config_path):
         super().__init__()
 
-        print(" Loading Configuration...")
+        print(" Loading Configuration_ _ _")
         with open(config_path, 'r') as f:
             data = json.load(f)
 
@@ -29,15 +29,15 @@ class MyCustomLLM(LLM):
         config = data['config']
         self.block_size = config['block_size']
 
-        print(" Rebuilding Model Architecture...")
+        print(" Rebuilding Model Architecture_ _ _")
 
         self.model = GPTLanguageModel(**config)
 
-        print(" Loading Weights...")
+        print(" Loading Weights_ _ _")
 
         self.model.load_state_dict(torch.load(weight_path, map_location=self.device))
         self.model.eval()
-        print("✅ Model Ready!")
+
 
     def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
 

@@ -1,12 +1,14 @@
 import torch
 import json
-from langchain.llms.base import LLM
+import langchain
+from langchain_core.language_models import LLM
+
 from typing import Optional, List, Any
-from gpt_model import GPTLanguageModel
+from model_architecture import GPTLanguageModel
 
 
 class MyCustomLLM(LLM):
-    # These type hints help LangChain understand what's inside
+
     model: Any = None
     stoi: dict = None
     itos: dict = None
@@ -16,7 +18,7 @@ class MyCustomLLM(LLM):
     def __init__(self, weight_path, config_path):
         super().__init__()
 
-        print("🔧 Loading Configuration...")
+        print(" Loading Configuration...")
         with open(config_path, 'r') as f:
             data = json.load(f)
 
@@ -27,11 +29,11 @@ class MyCustomLLM(LLM):
         config = data['config']
         self.block_size = config['block_size']
 
-        print("🧠 Rebuilding Model Architecture...")
+        print(" Rebuilding Model Architecture...")
 
         self.model = GPTLanguageModel(**config)
 
-        print("📥 Loading Weights...")
+        print(" Loading Weights...")
 
         self.model.load_state_dict(torch.load(weight_path, map_location=self.device))
         self.model.eval()

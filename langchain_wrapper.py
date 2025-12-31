@@ -18,26 +18,44 @@ class MyCustomLLM(LLM):
     def __init__(self, weight_path, config_path):
         super().__init__()
 
-        print(" Loading Configuration_ _ _")
+        print("Loading Configuration...")
         with open(config_path, 'r') as f:
             data = json.load(f)
 
         self.stoi = data['stoi']
-
         self.itos = {int(k): v for k, v in data['itos'].items()}
 
         config = data['config']
         self.block_size = config['block_size']
 
-        print(" Rebuilding Model Architecture_ _ _")
+        print(" Rebuilding Model Architecture...")
 
+        # Initialize model on CPU first
         self.model = GPTLanguageModel(**config)
 
-        print(" Loading Weights_ _ _")
+        print(" Loading Weights...")
 
-        self.model.load_state_dict(torch.load(weight_path, map_location=self.device))
-        self.model.eval()
 
+        try:
+            # Load state dict to CPU first
+            state_dict = torch.load(weight_path, map_location='cpu')
+
+
+            if any(param.is_meta for param in self.model.parameters()):
+                print(" Detected meta tensors, materializing...")
+                device = torch.device(self.device)
+                self.model = self.model.to_empty(device=device)
+
+            # Load the state dict
+            self.model.load_state_dict(state_dict, strict=False)
+            self.model.to(self.device)
+            self.model.eval()
+
+            print(" Model loaded successfully!")
+
+        except Exception as e:
+            print(f" Error loading weights: {e}")
+            raise
 
     def _call(self, prompt: str, stop: Optional[List[str]] = None) -> str:
 

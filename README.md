@@ -1,1 +1,1 @@
-Note: This repository is no longer maintained due to environment issues. The project has moved to a new repository: https://github.com/Karn2898/Language_model_RAG
+Note: This repository is no longer maintained due to environment issues. The project has moved to a new repository:  https://github.com/Karn2898/Language_model_RAG

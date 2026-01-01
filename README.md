@@ -1,1 +1,1 @@
-due to some project environment issues , it was getting tougher day by day to carry on , so I have shifted all the code to a new env . here is the link to the repo :
+Note: This repository is no longer maintained due to environment issues. The project has moved to a new repository: https://github.com/Karn2898/Language_model_RAG
